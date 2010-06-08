@@ -23,28 +23,3 @@ type Action struct {
 	Risk     float64           `json:"risk"`
 	Cost     float64           `json:"cost"`
 	Tags     []string          `json:"tags"`
-}
-
-// HasTag reports whether the action carries the given tag.
-func (a Action) HasTag(tag string) bool {
-	for _, t := range a.Tags {
-		if t == tag {
-			return true
-		}
-	}
-	return false
-}
-
-// Decision is a single decision point within a session.
-type Decision struct {
-	DecisionID      string   `json:"decision_id"`
-	Step            int      `json:"step"`
-	Prompt          string   `json:"prompt"`
-	Candidates      []Action `json:"candidates"`
-	ChosenActionID  string   `json:"chosen_action_id"`
-	ContextFrameIDs []string `json:"context_frame_ids"`
-}
-
-// Candidate returns the candidate action with the given id, or false.
-func (d Decision) Candidate(id string) (Action, bool) {
-	for _, c := range d.Candidates {
