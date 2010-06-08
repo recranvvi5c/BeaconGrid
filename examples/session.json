@@ -1,0 +1,65 @@
+{
+  "schema": "beacongrid/session@1",
+  "session_id": "sess-support-triage-014",
+  "agent": "triage-copilot",
+  "created": "2026-08-30T09:41:00Z",
+  "metadata": {
+    "channel": "support-inbox",
+    "locale": "en-US",
+    "recorded_by": "replay-tap"
+  },
+  "policy": {
+    "schema": "beacongrid/policy@1",
+    "policy_id": "triage-baseline",
+    "version": "3",
+    "tie_break": "lowest_cost",
+    "rules": [
+      {
+        "rule_id": "prefer-knowledge-base",
+        "when": { "tool": "kb_search" },
+        "weight": 2.0,
+        "note": "answer from documented knowledge before escalating"
+      },
+      {
+        "rule_id": "boost-refund-intent",
+        "when": { "intent_contains": "refund" },
+        "weight": 1.5,
+        "note": "refund flows are high value"
+      },
+      {
+        "rule_id": "reward-urgent-context",
+        "when": { "context_tag": "urgent" },
+        "weight": 3.0,
+        "note": "scaled by frame salience"
+      },
+      {
+        "rule_id": "escalate-tool",
+        "when": { "tool": "human_escalate" },
+        "weight": 1.0,
+        "note": "baseline allows escalation"
+      },
+      {
+        "rule_id": "legacy-macro",
+        "when": { "tag": "macro-v1" },
+        "weight": 0.5,
+        "note": "old canned-response path, rarely present"
+      }
+    ]
+  },
+  "frames": [
+    {
+      "frame_id": "f1",
+      "kind": "user_turn",
+      "content": "I was double charged and need this fixed today.",
+      "salience": 0.9,
+      "tags": ["billing", "urgent"]
+    },
+    {
+      "frame_id": "f2",
+      "kind": "retrieved_doc",
+      "content": "Refund SOP: verify duplicate charge, issue reversal within 24h.",
+      "salience": 0.7,
+      "tags": ["kb", "refund"]
+    },
+    {
+      "frame_id": "f3",
