@@ -30,36 +30,3 @@
         "rule_id": "reward-urgent-context",
         "when": { "context_tag": "urgent" },
         "weight": 3.0,
-        "note": "scaled by frame salience"
-      },
-      {
-        "rule_id": "escalate-tool",
-        "when": { "tool": "human_escalate" },
-        "weight": 1.0,
-        "note": "baseline allows escalation"
-      },
-      {
-        "rule_id": "legacy-macro",
-        "when": { "tag": "macro-v1" },
-        "weight": 0.5,
-        "note": "old canned-response path, rarely present"
-      }
-    ]
-  },
-  "frames": [
-    {
-      "frame_id": "f1",
-      "kind": "user_turn",
-      "content": "I was double charged and need this fixed today.",
-      "salience": 0.9,
-      "tags": ["billing", "urgent"]
-    },
-    {
-      "frame_id": "f2",
-      "kind": "retrieved_doc",
-      "content": "Refund SOP: verify duplicate charge, issue reversal within 24h.",
-      "salience": 0.7,
-      "tags": ["kb", "refund"]
-    },
-    {
-      "frame_id": "f3",
