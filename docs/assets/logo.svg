@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 560 200" width="560" height="200" role="img" aria-label="BeaconGrid logo">
+  <title>BeaconGrid</title>
+  <desc>Animated BeaconGrid logo: a pulsing beacon over a decision grid.</desc>
+  <defs>
+    <linearGradient id="bgGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0f2740"/>
+      <stop offset="1" stop-color="#123a5e"/>
+    </linearGradient>
+    <linearGradient id="beam" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#5cd1ff" stop-opacity="0.9"/>
+      <stop offset="1" stop-color="#5cd1ff" stop-opacity="0"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#8be9ff" stop-opacity="0.95"/>
+      <stop offset="1" stop-color="#8be9ff" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <rect x="0" y="0" width="560" height="200" rx="16" fill="url(#bgGrad)"/>
+
+  <!-- decision grid -->
+  <g stroke="#2f5a82" stroke-width="1" opacity="0.6">
+    <line x1="40" y1="150" x2="200" y2="150"/>
