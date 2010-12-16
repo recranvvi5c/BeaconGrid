@@ -29,13 +29,3 @@
       "veto": true,
       "note": "block automated refunds without human sign-off"
     },
-    {
-      "rule_id": "veto-autonomous-discount",
-      "when": { "tool": "grant_discount" },
-      "weight": 0.0,
-      "veto": true,
-      "note": "goodwill discounts require supervisor approval"
-    },
-    {
-      "rule_id": "escalate-tool",
-      "when": { "tool": "human_escalate" },

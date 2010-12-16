@@ -1,0 +1,14 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "beacongrid"
+version = "1.0.0"
+description = "BeaconGrid — Agent Decision Replay Studio. Replay recorded agent sessions against revised policies and report decision deltas, route divergence, and policy coverage."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "Apache-2.0" }
+keywords = ["agent", "policy", "replay", "decision", "coverage", "audit", "llm-ops"]
+authors = [{ name = "The BeaconGrid Authors" }]
+classifiers = [
