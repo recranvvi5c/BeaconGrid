@@ -28,33 +28,3 @@
       <rect x="24" y="150" width="150" height="60" rx="10" fill="url(#panel)" stroke="#2f6690"/>
       <text x="99" y="176" font-size="15" font-weight="600" fill="#eaf6ff">Revised</text>
       <text x="99" y="196" font-size="15" font-weight="600" fill="#eaf6ff">Policy</text>
-    </g>
-
-    <!-- engine -->
-    <g>
-      <rect x="300" y="86" width="160" height="88" rx="14" fill="url(#engine)" stroke="#5cd1ff" stroke-width="1.5">
-        <animate attributeName="stroke-opacity" values="0.4;1;0.4" dur="2.2s" repeatCount="indefinite"/>
-      </rect>
-      <text x="380" y="124" font-size="17" font-weight="700" fill="#ffffff">Replay</text>
-      <text x="380" y="146" font-size="17" font-weight="700" fill="#ffffff">Engine</text>
-      <circle cx="380" cy="160" r="0" fill="#eaf6ff" opacity="0.5">
-        <animate attributeName="r" values="0;46;0" dur="2.2s" repeatCount="indefinite"/>
-        <animate attributeName="opacity" values="0.4;0;0.4" dur="2.2s" repeatCount="indefinite"/>
-      </circle>
-    </g>
-
-    <!-- outputs -->
-    <g>
-      <rect x="586" y="26" width="150" height="52" rx="10" fill="url(#panel)" stroke="#3aa76d"/>
-      <text x="661" y="57" font-size="14" font-weight="600" fill="#d7f5e6">Decision Deltas</text>
-    </g>
-    <g>
-      <rect x="586" y="104" width="150" height="52" rx="10" fill="url(#panel)" stroke="#c9a227"/>
-      <text x="661" y="135" font-size="14" font-weight="600" fill="#f6ecc8">Route Divergence</text>
-    </g>
-    <g>
-      <rect x="586" y="182" width="150" height="52" rx="10" fill="url(#panel)" stroke="#b061c9"/>
-      <text x="661" y="213" font-size="14" font-weight="600" fill="#f0dcf6">Policy Coverage</text>
-    </g>
-  </g>
-
