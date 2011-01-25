@@ -8,24 +8,3 @@
       "rule_id": "prefer-knowledge-base",
       "when": { "tool": "kb_search" },
       "weight": 4.0,
-      "note": "strongly prefer answering from documented knowledge first"
-    },
-    {
-      "rule_id": "boost-refund-intent",
-      "when": { "intent_contains": "refund" },
-      "weight": 1.5,
-      "note": "refund flows remain high value"
-    },
-    {
-      "rule_id": "reward-urgent-context",
-      "when": { "context_tag": "urgent" },
-      "weight": 3.0,
-      "note": "scaled by frame salience"
-    },
-    {
-      "rule_id": "veto-unattended-refund",
-      "when": { "tool": "issue_refund" },
-      "weight": 0.0,
-      "veto": true,
-      "note": "block automated refunds without human sign-off"
-    },
