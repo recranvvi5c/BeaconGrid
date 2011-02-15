@@ -65,3 +65,37 @@ func predicateMatches(key, value string, action Action, frames []ContextFrame) (
 }
 
 // ruleFires evaluates every predicate in a rule; all must match.
+func ruleFires(rule PolicyRule, action Action, frames []ContextFrame) (bool, float64) {
+	scale := 1.0
+	// Sort keys for deterministic evaluation order.
+	keys := make([]string, 0, len(rule.When))
+	for k := range rule.When {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+	for _, key := range keys {
+		matched, sal := predicateMatches(key, rule.When[key], action, frames)
+		if !matched {
+			return false, 1.0
+		}
+		if key == "context_tag" {
+			scale = sal
+		}
+	}
+	return true, scale
+}
+
+// ScoreAction scores a single action under a policy with the given frames.
+func ScoreAction(action Action, policy Policy, frames []ContextFrame) ScoreBreakdown {
+	bd := ScoreBreakdown{ActionID: action.ActionID, Fired: []FiredRule{}, VetoRules: []string{}}
+	for _, rule := range policy.Rules {
+		fired, scale := ruleFires(rule, action, frames)
+		if !fired {
+			continue
+		}
+		if rule.Veto {
+			bd.Vetoed = true
+			bd.VetoRules = append(bd.VetoRules, rule.RuleID)
+			continue
+		}
+		delta := rule.Weight * scale
