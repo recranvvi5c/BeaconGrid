@@ -114,3 +114,61 @@ func cmdReplay(args []string) int {
 func cmdDiff(args []string) int {
 	pos, asJSON := splitFlags(args)
 	if len(pos) != 2 {
+		usage()
+		return 2
+	}
+	session, err := loadSession(pos[0])
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "error: %v\n", err)
+		return 2
+	}
+	revised, err := loadPolicy(pos[1])
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "error: %v\n", err)
+		return 2
+	}
+	dossier := grid.Replay(session, revised)
+	if asJSON {
+		if err := emitJSON(dossier.Routes); err != nil {
+			fmt.Fprintf(os.Stderr, "error: %v\n", err)
+			return 1
+		}
+		return 0
+	}
+	if len(dossier.Routes) == 0 {
+		fmt.Println("no divergences — revised policy reproduces every original route")
+		return 0
+	}
+	fmt.Printf("%d diverging decision(s):\n", len(dossier.Routes))
+	for _, r := range dossier.Routes {
+		fmt.Printf("  step %3d [%s]\n", r.Step, r.Kind)
+		fmt.Printf("      %s -> %s\n", r.OriginalActionID, r.ReplayActionID)
+		fmt.Printf("      %s\n", r.Detail)
+	}
+	return 0
+}
+
+func cmdCoverage(args []string) int {
+	pos, asJSON := splitFlags(args)
+	if len(pos) < 1 || len(pos) > 2 {
+		usage()
+		return 2
+	}
+	session, err := loadSession(pos[0])
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "error: %v\n", err)
+		return 2
+	}
+	policy := session.Policy
+	if len(pos) == 2 {
+		policy, err = loadPolicy(pos[1])
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "error: %v\n", err)
+			return 2
+		}
+	}
+	var breakdowns []map[string]grid.ScoreBreakdown
+	for _, d := range session.Decisions {
+		frames := session.FramesFor(d)
+		_, bd := grid.SelectAction(d, policy, frames)
+		breakdowns = append(breakdowns, bd)

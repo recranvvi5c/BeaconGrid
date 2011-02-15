@@ -9,3 +9,15 @@ our community to.
 
 We commit to making participation in BeaconGrid a harassment-free experience for
 everyone, regardless of experience level, gender identity and expression, sexual
+orientation, disability, personal appearance, body size, race, ethnicity, age,
+religion, or nationality.
+
+## Expected behavior
+
+- Assume good faith. A confusing bug report or an imperfect pull request is an
+  opportunity to help, not to belittle.
+- Keep technical disagreement technical. Argue the scoring model, the divergence
+  classification, or the runtime-parity tradeoff — never the person.
+- Be precise. Because BeaconGrid values deterministic, traceable behavior, we
+  expect discussion to cite evidence: a failing dossier, a diff, a reproduction.
+- Respect the project's scope. "Out of scope" is a legitimate, respectful answer,
