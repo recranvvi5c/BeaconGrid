@@ -79,3 +79,44 @@ def cmd_coverage(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_inspect(args: argparse.Namespace) -> int:
+    session = load_session(args.session)
+    if args.json:
+        print(json.dumps(session.to_dict(), indent=2, sort_keys=True))
+        return 0
+    print(f"session {session.session_id} (agent={session.agent})")
+    print(f"  created  : {session.created}")
+    print(f"  policy   : {session.policy.policy_id}@{session.policy.version}"
+          f" ({len(session.policy.rules)} rules)")
+    print(f"  frames   : {len(session.frames)}")
+    print(f"  decisions: {len(session.decisions)}")
+    for d in sorted(session.decisions, key=lambda x: x.step):
+        print(f"    step {d.step:>3}: {len(d.candidates)} candidates, "
+              f"chose {d.chosen_action_id}")
+    return 0
+
+
+def cmd_validate(args: argparse.Namespace) -> int:
+    try:
+        if args.kind == "session":
+            obj = load_session(args.path)
+            print(f"OK: session {obj.session_id} parsed ({len(obj.decisions)} decisions)")
+        else:
+            obj = load_policy(args.path)
+            print(f"OK: policy {obj.policy_id}@{obj.version} parsed ({len(obj.rules)} rules)")
+        return 0
+    except LoadError as exc:
+        print(f"INVALID: {exc}", file=sys.stderr)
+        return 2
+
+
+def build_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(
+        prog="beacongrid",
+        description="BeaconGrid — Agent Decision Replay Studio",
+    )
+    parser.add_argument("--json", action="store_true", help="emit JSON output")
+    sub = parser.add_subparsers(dest="command", required=True)
+
+    p_replay = sub.add_parser("replay", help="replay a session against a revised policy")
+    p_replay.add_argument("session", help="path to a session JSON file")
