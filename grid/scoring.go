@@ -31,3 +31,37 @@ func predicateMatches(key, value string, action Action, frames []ContextFrame) (
 		return action.HasTag(value), 1.0
 	case "intent_contains":
 		return strings.Contains(strings.ToLower(action.Intent), strings.ToLower(value)), 1.0
+	case "context_tag":
+		best := 0.0
+		found := false
+		for _, f := range frames {
+			for _, t := range f.Tags {
+				if t == value {
+					found = true
+					if f.Salience > best {
+						best = f.Salience
+					}
+				}
+			}
+		}
+		if found {
+			return true, best
+		}
+		return false, 1.0
+	case "max_risk":
+		threshold, err := strconv.ParseFloat(value, 64)
+		if err != nil {
+			return false, 1.0
+		}
+		return action.Risk > threshold, 1.0
+	case "max_cost":
+		threshold, err := strconv.ParseFloat(value, 64)
+		if err != nil {
+			return false, 1.0
+		}
+		return action.Cost > threshold, 1.0
+	}
+	return false, 1.0
+}
+
+// ruleFires evaluates every predicate in a rule; all must match.
