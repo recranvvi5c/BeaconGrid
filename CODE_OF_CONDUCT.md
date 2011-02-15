@@ -21,3 +21,26 @@ religion, or nationality.
 - Be precise. Because BeaconGrid values deterministic, traceable behavior, we
   expect discussion to cite evidence: a failing dossier, a diff, a reproduction.
 - Respect the project's scope. "Out of scope" is a legitimate, respectful answer,
+  not a dismissal.
+- Give credit and accept correction gracefully.
+
+## Unacceptable behavior
+
+- Harassment, insults, or derogatory comments, public or private.
+- Personal or political attacks.
+- Publishing others' private information without explicit permission.
+- Sustained disruption of discussions, issues, or reviews.
+- Any conduct that would reasonably be considered inappropriate in a professional
+  setting.
+
+## Scope
+
+This Code of Conduct applies within all project spaces — the repository, issues,
+pull requests, discussions, and reviews — and whenever an individual is
+representing the project in public.
+
+## Enforcement
+
+Maintainers are responsible for clarifying and enforcing these standards. They may
+edit, remove, or reject comments, commits, code, issues, and contributions that
+violate this Code of Conduct, and may temporarily or permanently ban any
