@@ -59,34 +59,3 @@ Accepted schemas in this release:
 
 ## Policy — `beacongrid/policy@1`
 
-| Field | Type | Required | Notes |
-| --- | --- | --- | --- |
-| `schema` | string | yes | must start with `beacongrid/policy@1` |
-| `policy_id` | string | yes | identifier |
-| `version` | string | no | defaults to `0` |
-| `tie_break` | string | no | `lowest_cost` (default), `lowest_risk`, or `first` |
-| `rules` | array | yes | scoring rules |
-
-### Policy rule
-
-| Field | Type | Required | Notes |
-| --- | --- | --- | --- |
-| `rule_id` | string | yes | reported in coverage and traces |
-| `when` | object | yes | predicate map; all must match to fire |
-| `weight` | float | no | added to score when the rule fires; default `0` |
-| `veto` | bool | no | if true, a firing rule disqualifies the candidate |
-| `note` | string | no | human-readable rationale |
-
-### Predicates
-
-| Key | Value | Matches when |
-| --- | --- | --- |
-| `tool` | string | candidate tool name equals value |
-| `tag` | string | candidate carries the tag |
-| `intent_contains` | string | value is a case-insensitive substring of the intent |
-| `context_tag` | string | any linked frame carries the tag; scales weight by max salience |
-| `max_risk` | float-string | candidate `risk` exceeds the value |
-| `max_cost` | float-string | candidate `cost` exceeds the value |
-
-Unknown predicate keys never match, so they neither fire nor veto.
-
