@@ -49,3 +49,54 @@ type CoverageReport struct {
 
 // ReplayDossier is the complete, shareable result of a replay.
 type ReplayDossier struct {
+	Schema         string           `json:"schema"`
+	SessionID      string           `json:"session_id"`
+	Agent          string           `json:"agent"`
+	OriginalPolicy string           `json:"original_policy"`
+	RevisedPolicy  string           `json:"revised_policy"`
+	Decisions      int              `json:"decisions"`
+	Divergences    int              `json:"divergences"`
+	DivergenceRate float64          `json:"divergence_rate"`
+	Deltas         []DecisionDelta  `json:"deltas"`
+	Routes         []RouteDivergence `json:"route_divergences"`
+	Coverage       CoverageReport   `json:"coverage"`
+}
+
+// Summary renders a human-readable dossier overview.
+func (d ReplayDossier) Summary() string {
+	var b strings.Builder
+	fmt.Fprintf(&b, "BeaconGrid replay dossier — session %s\n", d.SessionID)
+	fmt.Fprintf(&b, "  agent            : %s\n", d.Agent)
+	fmt.Fprintf(&b, "  original policy  : %s\n", d.OriginalPolicy)
+	fmt.Fprintf(&b, "  revised policy   : %s\n", d.RevisedPolicy)
+	fmt.Fprintf(&b, "  decisions        : %d\n", d.Decisions)
+	fmt.Fprintf(&b, "  divergences      : %d\n", d.Divergences)
+	fmt.Fprintf(&b, "  divergence rate  : %.1f%%\n", d.DivergenceRate*100)
+	fmt.Fprintf(&b, "  policy coverage  : %.1f%% (%d dormant)", d.Coverage.CoverageRatio*100, len(d.Coverage.DormantRules))
+	for _, r := range d.Routes {
+		fmt.Fprintf(&b, "\n    step %3d [%s] %s -> %s", r.Step, r.Kind, r.OriginalActionID, r.ReplayActionID)
+	}
+	return b.String()
+}
+
+func classify(orig, replay string, bd map[string]ScoreBreakdown, d Decision) RouteDivergence {
+	if replay == "" {
+		return RouteDivergence{d.DecisionID, d.Step, "all_vetoed",
+			"every candidate was disqualified by a veto rule", orig, ""}
+	}
+	if ob, ok := bd[orig]; ok && ob.Vetoed {
+		return RouteDivergence{d.DecisionID, d.Step, "veto_shift",
+			"the originally chosen action is now vetoed by rules " + strings.Join(ob.VetoRules, ", "),
+			orig, replay}
+	}
+	oc, ok1 := d.Candidate(orig)
+	nc, ok2 := d.Candidate(replay)
+	if ok1 && ok2 && oc.Tool != nc.Tool {
+		return RouteDivergence{d.DecisionID, d.Step, "tool_switch",
+			fmt.Sprintf("route moved from tool '%s' to '%s'", oc.Tool, nc.Tool), orig, replay}
+	}
+	return RouteDivergence{d.DecisionID, d.Step, "reweight",
+		"revised weights promoted a different candidate of the same tool", orig, replay}
+}
+
+// ComputeCoverage aggregates rule activity across every decision's breakdowns.
