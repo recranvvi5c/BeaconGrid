@@ -32,15 +32,3 @@ religion, or nationality.
 - Sustained disruption of discussions, issues, or reviews.
 - Any conduct that would reasonably be considered inappropriate in a professional
   setting.
-
-## Scope
-
-This Code of Conduct applies within all project spaces — the repository, issues,
-pull requests, discussions, and reviews — and whenever an individual is
-representing the project in public.
-
-## Enforcement
-
-Maintainers are responsible for clarifying and enforcing these standards. They may
-edit, remove, or reject comments, commits, code, issues, and contributions that
-violate this Code of Conduct, and may temporarily or permanently ban any
