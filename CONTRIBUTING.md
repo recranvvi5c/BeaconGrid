@@ -19,24 +19,3 @@ make changes, and propose them.
 ```bash
 git clone https://github.com/beacongrid/beacongrid.git
 cd beacongrid
-python -m beacongrid --help          # Python runtime
-cd grid && go build ./... && cd ..   # Go runtime
-```
-
-## Making a change
-
-1. Create a branch from `main`.
-2. Make your change in both runtimes when it touches shared behavior.
-3. Verify the CLIs still replay the bundled example and produce matching results:
-   ```bash
-   python -m beacongrid --json replay examples/session.json examples/revised_policy.json
-   cd grid && go run ./cmd/grid replay ../examples/session.json ../examples/revised_policy.json --json
-   ```
-4. Compile-check both runtimes:
-   ```bash
-   python -m compileall beacongrid
-   cd grid && go build ./... && go vet ./...
-   ```
-5. Update documentation (`README.md`, `docs/`) and `CHANGELOG.md` when behavior
-   or interfaces change.
-
