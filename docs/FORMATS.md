@@ -28,34 +28,3 @@ Accepted schemas in this release:
 
 | Field | Type | Required | Notes |
 | --- | --- | --- | --- |
-| `frame_id` | string | yes | referenced by decisions |
-| `kind` | string | yes | e.g. `user_turn`, `retrieved_doc`, `env_signal` |
-| `content` | string | no | the observation text |
-| `salience` | float | no | `0..1`; scales `context_tag` rule weight; default `0.5` |
-| `tags` | string[] | no | matched by `context_tag` predicates |
-
-### Decision
-
-| Field | Type | Required | Notes |
-| --- | --- | --- | --- |
-| `decision_id` | string | yes | unique within the session |
-| `step` | int | yes | replay order key |
-| `prompt` | string | no | the question posed at this point |
-| `candidates` | array | yes | one or more candidate actions |
-| `chosen_action_id` | string | yes | the action originally selected |
-| `context_frame_ids` | string[] | no | links to visible frames; unknown ids ignored |
-
-### Action (candidate)
-
-| Field | Type | Required | Notes |
-| --- | --- | --- | --- |
-| `action_id` | string | yes | unique within the decision |
-| `tool` | string | yes | matched by `tool` predicates |
-| `intent` | string | no | matched by `intent_contains` predicates |
-| `args` | object | no | string→string map, canonicalized |
-| `risk` | float | no | used by `max_risk` and `lowest_risk` tie-break |
-| `cost` | float | no | used by `max_cost` and `lowest_cost` tie-break |
-| `tags` | string[] | no | matched by `tag` predicates |
-
-## Policy — `beacongrid/policy@1`
-
