@@ -31,36 +31,3 @@ class RuleStat:
     total_weight: float = 0.0
 
     def to_dict(self) -> Dict[str, object]:
-        return {
-            "rule_id": self.rule_id,
-            "hits": self.hits,
-            "vetoes": self.vetoes,
-            "total_weight": round(self.total_weight, 6),
-        }
-
-
-@dataclass
-class CoverageReport:
-    policy_id: str
-    version: str
-    stats: Dict[str, RuleStat] = field(default_factory=dict)
-
-    @property
-    def fired_rules(self) -> List[str]:
-        return sorted(r for r, s in self.stats.items() if s.hits > 0)
-
-    @property
-    def dormant_rules(self) -> List[str]:
-        return sorted(
-            r for r, s in self.stats.items() if s.hits == 0 and s.vetoes == 0
-        )
-
-    @property
-    def veto_rules(self) -> List[str]:
-        return sorted(r for r, s in self.stats.items() if s.vetoes > 0)
-
-    def coverage_ratio(self) -> float:
-        if not self.stats:
-            return 0.0
-        active = sum(1 for s in self.stats.values() if s.hits or s.vetoes)
-        return round(active / len(self.stats), 6)
