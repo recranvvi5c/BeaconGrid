@@ -21,3 +21,50 @@
   <!-- decision grid -->
   <g stroke="#2f5a82" stroke-width="1" opacity="0.6">
     <line x1="40" y1="150" x2="200" y2="150"/>
+    <line x1="40" y1="120" x2="200" y2="120"/>
+    <line x1="40" y1="90"  x2="200" y2="90"/>
+    <line x1="70"  y1="70" x2="70"  y2="165"/>
+    <line x1="110" y1="70" x2="110" y2="165"/>
+    <line x1="150" y1="70" x2="150" y2="165"/>
+    <line x1="190" y1="70" x2="190" y2="165"/>
+  </g>
+
+  <!-- grid nodes lighting up in sequence -->
+  <g fill="#5cd1ff">
+    <circle cx="70" cy="150" r="4">
+      <animate attributeName="opacity" values="0.2;1;0.2" dur="3s" begin="0s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="110" cy="120" r="4">
+      <animate attributeName="opacity" values="0.2;1;0.2" dur="3s" begin="0.5s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="150" cy="90" r="4">
+      <animate attributeName="opacity" values="0.2;1;0.2" dur="3s" begin="1s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="190" cy="120" r="4">
+      <animate attributeName="opacity" values="0.2;1;0.2" dur="3s" begin="1.5s" repeatCount="indefinite"/>
+    </circle>
+  </g>
+
+  <!-- beacon -->
+  <g transform="translate(120,52)">
+    <ellipse cx="0" cy="0" rx="26" ry="26" fill="url(#glow)">
+      <animate attributeName="rx" values="18;30;18" dur="2.4s" repeatCount="indefinite"/>
+      <animate attributeName="ry" values="18;30;18" dur="2.4s" repeatCount="indefinite"/>
+      <animate attributeName="opacity" values="0.5;1;0.5" dur="2.4s" repeatCount="indefinite"/>
+    </ellipse>
+    <polygon points="0,-14 10,10 -10,10" fill="#8be9ff"/>
+    <path d="M -22 -30 L 0 -46 L 22 -30 Z" fill="url(#beam)">
+      <animate attributeName="opacity" values="0.2;0.85;0.2" dur="2.4s" repeatCount="indefinite"/>
+    </path>
+  </g>
+
+  <!-- wordmark -->
+  <g font-family="'Segoe UI', Helvetica, Arial, sans-serif">
+    <text x="240" y="98" font-size="42" font-weight="700" fill="#eaf6ff">Beacon<tspan fill="#5cd1ff">Grid</tspan></text>
+    <text x="242" y="126" font-size="16" fill="#9fc4e0" letter-spacing="2">AGENT DECISION REPLAY STUDIO</text>
+    <rect x="242" y="138" width="0" height="3" fill="#5cd1ff">
+      <animate attributeName="width" values="0;286;286" dur="3s" begin="0.3s" fill="freeze" repeatCount="indefinite"/>
+      <animate attributeName="opacity" values="1;1;0.3;1" dur="3s" begin="0.3s" repeatCount="indefinite"/>
+    </rect>
+  </g>
+</svg>
