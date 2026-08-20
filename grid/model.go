@@ -23,3 +23,79 @@ type Action struct {
 	Risk     float64           `json:"risk"`
 	Cost     float64           `json:"cost"`
 	Tags     []string          `json:"tags"`
+}
+
+// HasTag reports whether the action carries the given tag.
+func (a Action) HasTag(tag string) bool {
+	for _, t := range a.Tags {
+		if t == tag {
+			return true
+		}
+	}
+	return false
+}
+
+// Decision is a single decision point within a session.
+type Decision struct {
+	DecisionID      string   `json:"decision_id"`
+	Step            int      `json:"step"`
+	Prompt          string   `json:"prompt"`
+	Candidates      []Action `json:"candidates"`
+	ChosenActionID  string   `json:"chosen_action_id"`
+	ContextFrameIDs []string `json:"context_frame_ids"`
+}
+
+// Candidate returns the candidate action with the given id, or false.
+func (d Decision) Candidate(id string) (Action, bool) {
+	for _, c := range d.Candidates {
+		if c.ActionID == id {
+			return c, true
+		}
+	}
+	return Action{}, false
+}
+
+// PolicyRule is a single declarative scoring rule.
+type PolicyRule struct {
+	RuleID string            `json:"rule_id"`
+	When   map[string]string `json:"when"`
+	Weight float64           `json:"weight"`
+	Veto   bool              `json:"veto"`
+	Note   string            `json:"note"`
+}
+
+// Policy is a named, versioned collection of rules.
+type Policy struct {
+	Schema   string       `json:"schema"`
+	PolicyID string       `json:"policy_id"`
+	Version  string       `json:"version"`
+	TieBreak string       `json:"tie_break"`
+	Rules    []PolicyRule `json:"rules"`
+}
+
+// Session is a recorded agent session ready for replay.
+type Session struct {
+	Schema    string                 `json:"schema"`
+	SessionID string                 `json:"session_id"`
+	Agent     string                 `json:"agent"`
+	Created   string                 `json:"created"`
+	Policy    Policy                 `json:"policy"`
+	Frames    []ContextFrame         `json:"frames"`
+	Decisions []Decision             `json:"decisions"`
+	Metadata  map[string]interface{} `json:"metadata"`
+}
+
+// FramesFor returns the context frames linked to a decision.
+func (s Session) FramesFor(d Decision) []ContextFrame {
+	index := make(map[string]ContextFrame, len(s.Frames))
+	for _, f := range s.Frames {
+		index[f.FrameID] = f
+	}
+	out := make([]ContextFrame, 0, len(d.ContextFrameIDs))
+	for _, id := range d.ContextFrameIDs {
+		if f, ok := index[id]; ok {
+			out = append(out, f)
+		}
+	}
+	return out
+}
