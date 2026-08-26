@@ -119,3 +119,125 @@ class ReplayDossier:
         return {
             "schema": "beacongrid/dossier@1",
             "session_id": self.session_id,
+            "agent": self.agent,
+            "original_policy": self.original_policy,
+            "revised_policy": self.revised_policy,
+            "decisions": len(self.deltas),
+            "divergences": len(self.divergences),
+            "divergence_rate": self.divergence_rate,
+            "deltas": [d.to_dict() for d in self.deltas],
+            "route_divergences": [d.to_dict() for d in self.divergences],
+            "coverage": self.coverage.to_dict() if self.coverage else None,
+        }
+
+
+class ReplayEngine:
+    """Replays a session against a revised policy."""
+
+    def __init__(self, session: Session, revised_policy: Policy) -> None:
+        self.session = session
+        self.revised_policy = revised_policy
+
+    def _classify(
+        self,
+        original_action_id: str,
+        replay_action_id: Optional[str],
+        breakdown: Dict[str, ScoreBreakdown],
+        session,
+        decision,
+    ) -> RouteDivergence:
+        """Classify a divergence into a route kind with a human explanation."""
+
+        if replay_action_id is None:
+            return RouteDivergence(
+                decision_id=decision.decision_id,
+                step=decision.step,
+                kind="all_vetoed",
+                detail="every candidate was disqualified by a veto rule",
+                original_action_id=original_action_id,
+                replay_action_id=None,
+            )
+
+        orig_bd = breakdown.get(original_action_id)
+        if orig_bd and orig_bd.vetoed:
+            return RouteDivergence(
+                decision_id=decision.decision_id,
+                step=decision.step,
+                kind="veto_shift",
+                detail=(
+                    "the originally chosen action is now vetoed by rules "
+                    + ", ".join(orig_bd.veto_rules)
+                ),
+                original_action_id=original_action_id,
+                replay_action_id=replay_action_id,
+            )
+
+        orig_tool = decision.candidate(original_action_id)
+        new_tool = decision.candidate(replay_action_id)
+        if orig_tool and new_tool and orig_tool.tool != new_tool.tool:
+            kind = "tool_switch"
+            detail = f"route moved from tool '{orig_tool.tool}' to '{new_tool.tool}'"
+        else:
+            kind = "reweight"
+            detail = "revised weights promoted a different candidate of the same tool"
+        return RouteDivergence(
+            decision_id=decision.decision_id,
+            step=decision.step,
+            kind=kind,
+            detail=detail,
+            original_action_id=original_action_id,
+            replay_action_id=replay_action_id,
+        )
+
+    def run(self) -> ReplayDossier:
+        dossier = ReplayDossier(
+            session_id=self.session.session_id,
+            agent=self.session.agent,
+            original_policy=f"{self.session.policy.policy_id}@{self.session.policy.version}",
+            revised_policy=f"{self.revised_policy.policy_id}@{self.revised_policy.version}",
+        )
+        all_breakdowns: List[Dict[str, ScoreBreakdown]] = []
+
+        for decision in sorted(self.session.decisions, key=lambda d: d.step):
+            frames = self.session.frames_for(decision)
+            replay_action_id, breakdown = select_action(
+                decision, self.revised_policy, frames
+            )
+            all_breakdowns.append(breakdown)
+
+            original_id = decision.chosen_action_id
+            orig_score = breakdown.get(original_id)
+            replay_score = breakdown.get(replay_action_id) if replay_action_id else None
+            diverged = replay_action_id != original_id
+
+            delta = DecisionDelta(
+                decision_id=decision.decision_id,
+                step=decision.step,
+                original_action_id=original_id,
+                replay_action_id=replay_action_id,
+                diverged=diverged,
+                original_score=orig_score.score if orig_score else 0.0,
+                replay_score=replay_score.score if replay_score else 0.0,
+                breakdown=breakdown,
+            )
+            dossier.deltas.append(delta)
+
+            if diverged:
+                dossier.divergences.append(
+                    self._classify(
+                        original_id,
+                        replay_action_id,
+                        breakdown,
+                        self.session,
+                        decision,
+                    )
+                )
+
+        dossier.coverage = compute_coverage(self.revised_policy, all_breakdowns)
+        return dossier
+
+
+def replay_session(session: Session, revised_policy: Policy) -> ReplayDossier:
+    """Convenience wrapper around :class:`ReplayEngine`."""
+
+    return ReplayEngine(session, revised_policy).run()
