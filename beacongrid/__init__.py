@@ -32,3 +32,37 @@ from .loader import (
     LoadError,
     load_policy,
     load_session,
+)
+from .replay import (
+    DecisionDelta,
+    ReplayDossier,
+    ReplayEngine,
+    RouteDivergence,
+    replay_session,
+)
+from .coverage import CoverageReport, compute_coverage
+from .scoring import ScoreBreakdown, score_action
+
+__version__ = "1.0.0"
+
+__all__ = [
+    "Action",
+    "ContextFrame",
+    "Decision",
+    "Policy",
+    "PolicyRule",
+    "Session",
+    "LoadError",
+    "load_policy",
+    "load_session",
+    "DecisionDelta",
+    "ReplayDossier",
+    "ReplayEngine",
+    "RouteDivergence",
+    "replay_session",
+    "CoverageReport",
+    "compute_coverage",
+    "ScoreBreakdown",
+    "score_action",
+    "__version__",
+]
