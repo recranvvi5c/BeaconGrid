@@ -41,3 +41,47 @@ Run from the repository root. Both runtimes must pass before tagging.
    diff /tmp/py.json /tmp/go.json
    ```
    A non-empty diff is a release blocker: the runtimes have drifted.
+
+4. **Smoke-test every command** on both runtimes: `replay`, `diff`, `coverage`,
+   `inspect`, `validate`. Confirm exit code `0` on the example and `2` on a
+   deliberately malformed file.
+
+5. **Update `CHANGELOG.md`.** Move entries out of any unreleased section into a
+   dated version heading and add the release link at the bottom.
+
+6. **Reconcile `ROADMAP.md`.** Anything shipped in this release moves from
+   *Planned* to *Shipped* as a `[x]` item.
+
+7. **Bump the version** in `pyproject.toml`.
+
+## Cutting the release
+
+1. Commit the version bump and changelog on a release branch; open a PR.
+2. After merge, tag `main`:
+   ```bash
+   git tag -a v<version> -m "BeaconGrid v<version>"
+   git push origin v<version>
+   ```
+   The tag serves both runtimes — it is the Go module version and the Python
+   release marker.
+3. Build the Python distribution from the clean, tagged tree:
+   ```bash
+   python -m build
+   ```
+4. Publish the GitHub release from the tag, pasting the matching `CHANGELOG.md`
+   section as the release notes.
+
+## Post-release
+
+- Verify a fresh clone at the tag replays the example identically in both
+  runtimes.
+- Open the next `## [Unreleased]` section in `CHANGELOG.md`.
+- Announce the release and link the dossier-parity check output for the record.
+
+## Rollback
+
+Because a dossier is fully self-describing and scoring is deterministic, a bad
+release is diagnosable by replaying an archived session and diffing the dossier
+against the one committed under the previous tag. If a release regresses behavior,
+yank the affected Python artifact, advise users to pin the prior tag for the Go
+module, and ship a corrective PATCH once the diverging dossier is reproduced.

@@ -80,3 +80,86 @@ def _predicate_matches(
         except ValueError:
             return False, 1.0
     # Unknown predicate keys never match; this keeps forward-compatible
+    # policies from silently granting weight.
+    return False, 1.0
+
+
+def _rule_fires(
+    rule: PolicyRule,
+    action: Action,
+    frames: Sequence[ContextFrame],
+) -> Tuple[bool, float]:
+    """Evaluate every predicate in a rule. All must match for the rule to fire."""
+
+    scale = 1.0
+    for key, value in rule.when:
+        matched, sal = _predicate_matches(key, value, action, frames)
+        if not matched:
+            return False, 1.0
+        scale = min(scale, sal) if key == "context_tag" else scale
+        if key == "context_tag":
+            scale = sal
+    return True, scale
+
+
+def score_action(
+    action: Action,
+    policy: Policy,
+    frames: Sequence[ContextFrame],
+) -> ScoreBreakdown:
+    """Score a single action under a policy with the given context frames."""
+
+    breakdown = ScoreBreakdown(action_id=action.action_id)
+    for rule in policy.rules:
+        fired, scale = _rule_fires(rule, action, frames)
+        if not fired:
+            continue
+        if rule.veto:
+            breakdown.vetoed = True
+            breakdown.veto_rules.append(rule.rule_id)
+            continue
+        delta = rule.weight * scale
+        breakdown.score += delta
+        breakdown.fired.append((rule.rule_id, delta))
+    return breakdown
+
+
+def _tie_break_key(action: Action, strategy: str) -> Tuple[float, str]:
+    if strategy == "lowest_risk":
+        return (action.risk, action.action_id)
+    if strategy == "first":
+        return (0.0, action.action_id)
+    # default: lowest_cost
+    return (action.cost, action.action_id)
+
+
+def select_action(
+    decision: Decision,
+    policy: Policy,
+    frames: Sequence[ContextFrame],
+) -> Tuple[Optional[str], Dict[str, ScoreBreakdown]]:
+    """Return the selected action id and the full breakdown map for a decision."""
+
+    breakdowns: Dict[str, ScoreBreakdown] = {}
+    for candidate in decision.candidates:
+        breakdowns[candidate.action_id] = score_action(candidate, policy, frames)
+
+    eligible = [
+        c for c in decision.candidates if not breakdowns[c.action_id].vetoed
+    ]
+    if not eligible:
+        return None, breakdowns
+
+    best_score = max(breakdowns[c.action_id].score for c in eligible)
+    top = [c for c in eligible if breakdowns[c.action_id].score == best_score]
+    if len(top) == 1:
+        return top[0].action_id, breakdowns
+
+    if policy.tie_break == "first":
+        # Preserve declaration order among the tied candidates.
+        order = {c.action_id: i for i, c in enumerate(decision.candidates)}
+        top.sort(key=lambda c: order[c.action_id])
+        return top[0].action_id, breakdowns
+
+    top.sort(key=lambda c: _tie_break_key(c, policy.tie_break))
+    return top[0].action_id, breakdowns
