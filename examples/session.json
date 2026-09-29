@@ -30,3 +30,135 @@
         "rule_id": "reward-urgent-context",
         "when": { "context_tag": "urgent" },
         "weight": 3.0,
+        "note": "scaled by frame salience"
+      },
+      {
+        "rule_id": "escalate-tool",
+        "when": { "tool": "human_escalate" },
+        "weight": 1.0,
+        "note": "baseline allows escalation"
+      },
+      {
+        "rule_id": "legacy-macro",
+        "when": { "tag": "macro-v1" },
+        "weight": 0.5,
+        "note": "old canned-response path, rarely present"
+      }
+    ]
+  },
+  "frames": [
+    {
+      "frame_id": "f1",
+      "kind": "user_turn",
+      "content": "I was double charged and need this fixed today.",
+      "salience": 0.9,
+      "tags": ["billing", "urgent"]
+    },
+    {
+      "frame_id": "f2",
+      "kind": "retrieved_doc",
+      "content": "Refund SOP: verify duplicate charge, issue reversal within 24h.",
+      "salience": 0.7,
+      "tags": ["kb", "refund"]
+    },
+    {
+      "frame_id": "f3",
+      "kind": "env_signal",
+      "content": "Customer tier: standard. Prior tickets: 0.",
+      "salience": 0.3,
+      "tags": ["account"]
+    }
+  ],
+  "decisions": [
+    {
+      "decision_id": "d1",
+      "step": 1,
+      "prompt": "How should the agent respond to the double-charge report?",
+      "context_frame_ids": ["f1", "f2"],
+      "chosen_action_id": "a-escalate",
+      "candidates": [
+        {
+          "action_id": "a-kb",
+          "tool": "kb_search",
+          "intent": "look up refund SOP for duplicate charge",
+          "args": { "query": "duplicate charge refund" },
+          "risk": 0.1,
+          "cost": 0.2,
+          "tags": ["read-only"]
+        },
+        {
+          "action_id": "a-escalate",
+          "tool": "human_escalate",
+          "intent": "route refund to a human agent",
+          "args": { "queue": "billing" },
+          "risk": 0.2,
+          "cost": 0.9,
+          "tags": []
+        },
+        {
+          "action_id": "a-refund",
+          "tool": "issue_refund",
+          "intent": "issue refund for the duplicate charge",
+          "args": { "amount": "duplicate" },
+          "risk": 0.8,
+          "cost": 0.4,
+          "tags": ["mutating"]
+        }
+      ]
+    },
+    {
+      "decision_id": "d2",
+      "step": 2,
+      "prompt": "After verifying the charge, what next?",
+      "context_frame_ids": ["f2", "f3"],
+      "chosen_action_id": "a-close",
+      "candidates": [
+        {
+          "action_id": "a-close",
+          "tool": "close_ticket",
+          "intent": "close the ticket as resolved",
+          "args": {},
+          "risk": 0.3,
+          "cost": 0.1,
+          "tags": []
+        },
+        {
+          "action_id": "a-followup",
+          "tool": "kb_search",
+          "intent": "confirm refund timeline for the customer",
+          "args": { "query": "refund timeline" },
+          "risk": 0.1,
+          "cost": 0.3,
+          "tags": ["read-only"]
+        }
+      ]
+    },
+    {
+      "decision_id": "d3",
+      "step": 3,
+      "prompt": "Customer asks for a discount on a future order.",
+      "context_frame_ids": ["f3"],
+      "chosen_action_id": "a-discount",
+      "candidates": [
+        {
+          "action_id": "a-discount",
+          "tool": "grant_discount",
+          "intent": "grant a goodwill discount",
+          "args": { "percent": "10" },
+          "risk": 0.6,
+          "cost": 0.5,
+          "tags": ["mutating"]
+        },
+        {
+          "action_id": "a-defer",
+          "tool": "human_escalate",
+          "intent": "defer discount approval to a supervisor",
+          "args": { "queue": "billing" },
+          "risk": 0.2,
+          "cost": 0.8,
+          "tags": []
+        }
+      ]
+    }
+  ]
+}
