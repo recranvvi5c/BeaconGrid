@@ -44,3 +44,49 @@ are binary. Keeping a single scaling lever preserves the mental model.
 Ties resolve by `lowest_cost` (default), `lowest_risk`, or `first` (declaration
 order), and every strategy ends by comparing the action id. A total order means
 selection is never ambiguous and never runtime-dependent — essential for
+cross-runtime parity.
+
+## Divergence classification
+
+Rather than reporting only *that* a decision changed, the engine classifies
+*why*: `tool_switch`, `veto_shift`, `reweight`, or `all_vetoed`. The classifier
+runs in a fixed priority — an unselectable decision is `all_vetoed`; a
+newly-vetoed original is `veto_shift`; a change of tool is `tool_switch`;
+otherwise `reweight`. This ordering makes the most consequential cause win when
+several apply.
+
+## Frozen, canonicalized model
+
+Records are immutable and their argument maps are canonicalized (sorted) so
+equivalent payloads compare equal and results are safe to share across the
+pipeline. Immutability also rules out a class of accidental mutation bugs in the
+replay loop.
+
+**Trade-off:** constructing frozen records costs a little more than mutating
+dicts. The safety and comparability are worth it for an audit tool.
+
+## One loader, one exception
+
+All untrusted input flows through a single loader that raises a single exception
+type. Callers catch one thing. Schema validation checks only the prefix and
+major version; minor fields pass through untouched to keep payloads
+forward-compatible.
+
+## Dual runtimes
+
+The Go module is a deliberate mirror of the Python reference, not a rewrite with
+its own idioms. Function names, control flow, and ordering match so the two stay
+in lockstep as the algorithm evolves. Python is the readable reference; Go is the
+embeddable engine.
+
+**Trade-off:** two implementations mean two things to keep in sync. We accept
+that maintenance cost to serve both reference clarity and production embedding.
+
+## Non-goals
+
+- Running agents, calling tools, or contacting models.
+- Learning or optimizing policies automatically.
+- A plugin system for arbitrary predicate code.
+
+These are out of scope on purpose: each would compromise determinism, the
+dependency-free guarantee, or the small, auditable surface.
