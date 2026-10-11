@@ -38,3 +38,126 @@ def cmd_replay(args: argparse.Namespace) -> int:
     revised = load_policy(args.policy)
     dossier = replay_session(session, revised)
     _emit(dossier.to_dict(), args.json, dossier.summary())
+    return 0
+
+
+def cmd_diff(args: argparse.Namespace) -> int:
+    session = load_session(args.session)
+    revised = load_policy(args.policy)
+    dossier = replay_session(session, revised)
+    if args.json:
+        print(json.dumps([d.to_dict() for d in dossier.divergences], indent=2))
+        return 0
+    if not dossier.divergences:
+        print("no divergences — revised policy reproduces every original route")
+        return 0
+    print(f"{len(dossier.divergences)} diverging decision(s):")
+    for div in dossier.divergences:
+        print(f"  step {div.step:>3} [{div.kind}]")
+        print(f"      {div.original_action_id} -> {div.replay_action_id}")
+        print(f"      {div.detail}")
+    return 0
+
+
+def cmd_coverage(args: argparse.Namespace) -> int:
+    session = load_session(args.session)
+    policy = load_policy(args.policy) if args.policy else session.policy
+    breakdowns = []
+    for decision in session.decisions:
+        frames = session.frames_for(decision)
+        _, bd = select_action(decision, policy, frames)
+        breakdowns.append(bd)
+    report = compute_coverage(policy, breakdowns)
+    if args.json:
+        print(json.dumps(report.to_dict(), indent=2, sort_keys=True))
+        return 0
+    print(f"coverage for policy {report.policy_id}@{report.version}")
+    print(f"  ratio   : {report.coverage_ratio():.1%}")
+    print(f"  fired   : {', '.join(report.fired_rules) or '(none)'}")
+    print(f"  veto    : {', '.join(report.veto_rules) or '(none)'}")
+    print(f"  dormant : {', '.join(report.dormant_rules) or '(none)'}")
+    return 0
+
+
+def cmd_inspect(args: argparse.Namespace) -> int:
+    session = load_session(args.session)
+    if args.json:
+        print(json.dumps(session.to_dict(), indent=2, sort_keys=True))
+        return 0
+    print(f"session {session.session_id} (agent={session.agent})")
+    print(f"  created  : {session.created}")
+    print(f"  policy   : {session.policy.policy_id}@{session.policy.version}"
+          f" ({len(session.policy.rules)} rules)")
+    print(f"  frames   : {len(session.frames)}")
+    print(f"  decisions: {len(session.decisions)}")
+    for d in sorted(session.decisions, key=lambda x: x.step):
+        print(f"    step {d.step:>3}: {len(d.candidates)} candidates, "
+              f"chose {d.chosen_action_id}")
+    return 0
+
+
+def cmd_validate(args: argparse.Namespace) -> int:
+    try:
+        if args.kind == "session":
+            obj = load_session(args.path)
+            print(f"OK: session {obj.session_id} parsed ({len(obj.decisions)} decisions)")
+        else:
+            obj = load_policy(args.path)
+            print(f"OK: policy {obj.policy_id}@{obj.version} parsed ({len(obj.rules)} rules)")
+        return 0
+    except LoadError as exc:
+        print(f"INVALID: {exc}", file=sys.stderr)
+        return 2
+
+
+def build_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(
+        prog="beacongrid",
+        description="BeaconGrid — Agent Decision Replay Studio",
+    )
+    parser.add_argument("--json", action="store_true", help="emit JSON output")
+    sub = parser.add_subparsers(dest="command", required=True)
+
+    p_replay = sub.add_parser("replay", help="replay a session against a revised policy")
+    p_replay.add_argument("session", help="path to a session JSON file")
+    p_replay.add_argument("policy", help="path to a revised policy JSON file")
+    p_replay.set_defaults(func=cmd_replay)
+
+    p_diff = sub.add_parser("diff", help="show only diverging decisions")
+    p_diff.add_argument("session")
+    p_diff.add_argument("policy")
+    p_diff.set_defaults(func=cmd_diff)
+
+    p_cov = sub.add_parser("coverage", help="report policy rule coverage")
+    p_cov.add_argument("session")
+    p_cov.add_argument("policy", nargs="?", default=None,
+                       help="optional revised policy; defaults to the session policy")
+    p_cov.set_defaults(func=cmd_coverage)
+
+    p_ins = sub.add_parser("inspect", help="summarize a session")
+    p_ins.add_argument("session")
+    p_ins.set_defaults(func=cmd_inspect)
+
+    p_val = sub.add_parser("validate", help="validate a session or policy file")
+    p_val.add_argument("kind", choices=["session", "policy"])
+    p_val.add_argument("path")
+    p_val.set_defaults(func=cmd_validate)
+
+    return parser
+
+
+def main(argv: Optional[List[str]] = None) -> int:
+    parser = build_parser()
+    args = parser.parse_args(argv)
+    # Propagate the top-level --json to subcommand namespaces.
+    if not hasattr(args, "json"):
+        args.json = False
+    try:
+        return args.func(args)
+    except LoadError as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return 2
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
