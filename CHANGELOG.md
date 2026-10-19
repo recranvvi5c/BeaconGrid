@@ -32,3 +32,7 @@ The first stable release. Both runtimes replay sessions at parity.
   notes.
 
 [1.0.0]: https://github.com/beacongrid/beacongrid/releases/tag/v1.0.0
+
+## [Unreleased]
+
+- Hardened the input validation and documented the contract (see the linked issues).
