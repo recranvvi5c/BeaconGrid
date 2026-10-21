@@ -1,16 +1,10 @@
-.PHONY: compile python native demo clean
+test:
+	python -m unittest discover -s tests -v
+	cd grid && go test ./...
 
-compile: python native
+.PHONY: test
 
-python:
-	python -m compileall -q beacongrid
+schema:
+	python scripts/check_schema.py
 
-native:
-	cd grid && go build ./...
-
-demo:
-	python -m beacongrid --help
-
-clean:
-	@echo Cleaning generated report artifacts
-
+.PHONY: schema
